@@ -7,8 +7,10 @@ services:
       dockerfile: ./account/app.dockerfile
     depends_on:
       - account_db
+      - rabbitmq
     environment:
-      DATABASE_URL: postgres://akhil:123456@account_db/akhil?sslmode=disable
+      DATABASE_URL: postgres://jaisheesh:123456@account_db/jaisheesh?sslmode=disable
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
     restart: on-failure
 
   catalog:
@@ -27,10 +29,12 @@ services:
       dockerfile: ./order/app.dockerfile
     depends_on:
       - order_db
+      - rabbitmq
     environment:
-      DATABASE_URL: postgres://akhil:123456@order_db/akhil?sslmode=disable
+      DATABASE_URL: postgres://jaisheesh:123456@order_db/jaisheesh?sslmode=disable
       ACCOUNT_SERVICE_URL: account:8080
       CATALOG_SERVICE_URL: catalog:8080
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
     restart: on-failure
 
   graphql:
@@ -53,23 +57,31 @@ services:
       context: ./account
       dockerfile: ./db.dockerfile
     environment:
-      POSTGRES_DB: akhil
-      POSTGRES_USER: akhil
+      POSTGRES_DB: jaisheesh
+      POSTGRES_USER: jaisheesh
       POSTGRES_PASSWORD: 123456
     restart: unless-stopped
 
   catalog_db:
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.2.4
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
     environment:
       ES_JAVA_OPTS: -Xms1g -Xmx1g
       discovery.type: single-node
+      xpack.security.enabled: "false"
 
   order_db:
     build:
       context: ./order
       dockerfile: ./db.dockerfile
     environment:
-      POSTGRES_DB: akhil
-      POSTGRES_USER: akhil
+      POSTGRES_DB: jaisheesh
+      POSTGRES_USER: jaisheesh
       POSTGRES_PASSWORD: 123456
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"
+      - "5672:5672"
     restart: unless-stopped

@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.20'
+
+    - name: Build Account Service
+      working-directory: ./account
+      run: go build -v ./...
+
+    - name: Build Catalog Service
+      working-directory: ./catalog
+      run: go build -v ./...
+
+    - name: Build Order Service
+      working-directory: ./order
+      run: go build -v ./...
+
+    - name: Build GraphQL Gateway
+      working-directory: ./graphql
+      run: go build -v ./...

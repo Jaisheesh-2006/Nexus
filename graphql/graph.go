@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/akhilsharma90/go-graphql-microservice/account"
-	"github.com/akhilsharma90/go-graphql-microservice/catalog"
-	"github.com/akhilsharma90/go-graphql-microservice/order"
+	"github.com/Jaisheesh-2006/go-graphql-microservice/account"
+	"github.com/Jaisheesh-2006/go-graphql-microservice/catalog"
+	"github.com/Jaisheesh-2006/go-graphql-microservice/order"
 )
 
 type Server struct {

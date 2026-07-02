@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/akhilsharma90/go-graphql-microservice/account/pb"
+	"github.com/Jaisheesh-2006/go-graphql-microservice/account/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )

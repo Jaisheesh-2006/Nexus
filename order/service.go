@@ -2,8 +2,11 @@ package order
 
 import (
 	"context"
+	"encoding/json"
+	"log"
 	"time"
 
+	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/segmentio/ksuid"
 )
 
@@ -30,10 +33,11 @@ type OrderedProduct struct {
 
 type orderService struct {
 	repository Repository
+	amqpChan   *amqp.Channel
 }
 
-func NewService(r Repository) Service {
-	return &orderService{r}
+func NewService(r Repository, amqpChan *amqp.Channel) Service {
+	return &orderService{r, amqpChan}
 }
 
 func (s orderService) PostOrder(
@@ -56,6 +60,27 @@ func (s orderService) PostOrder(
 	if err != nil {
 		return nil, err
 	}
+
+	// Publish to RabbitMQ
+	if s.amqpChan != nil {
+		body, _ := json.Marshal(o)
+		err = s.amqpChan.PublishWithContext(
+			ctx,
+			"orders_exchange", // exchange
+			"",                // routing key
+			false,             // mandatory
+			false,             // immediate
+			amqp.Publishing{
+				ContentType: "application/json",
+				Body:        body,
+			})
+		if err != nil {
+			log.Printf("Failed to publish order event: %v", err)
+		} else {
+			log.Println("Order event published successfully")
+		}
+	}
+
 	return o, nil
 }
 
