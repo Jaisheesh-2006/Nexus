@@ -20,36 +20,72 @@ Nexus models an e-commerce platform divided into three independent microservices
 - **API Gateway:** GraphQL (`gqlgen`)
 - **Internal RPC:** gRPC & Protocol Buffers
 - **Message Broker:** RabbitMQ
-- **Databases:** PostgreSQL (Relational) & Elasticsearch v7 (Search)
-- **Infrastructure:** Docker & Docker Compose
+- **Databases:** PostgreSQL (Relational) & Elasticsearch v7.17 (Search)
+- **Infrastructure:** Docker & Docker Compose (ARM & x86 Compatible)
 
-## 🚦 Quick Start (Local Development)
+## 🚦 Live API Testing
 
-You only need **Docker** installed. No local Go environment is required.
+The API is currently live! You can test the entire microservices flow directly from your browser. 
 
-1. **Spin up the cluster:**
-   ```bash
-   docker compose up -d --build
-   ```
-2. **Access the Dashboards:**
-   - **GraphQL API & Playground:** [http://localhost:8000/playground](http://localhost:8000/playground)
-   - **RabbitMQ Dashboard:** [http://localhost:15672](http://localhost:15672) *(Login: `guest` / `guest`)*
+👉 **Live GraphQL Playground:** [http://nexus-go.duckdns.org:8000/playground](http://nexus-go.duckdns.org:8000/playground)
 
-## 🔍 Example GraphQL API Usage
+### 1. Create an Account
+Run this mutation to create a new user. *(Save the `id` it returns!)*
+```graphql
+mutation {
+  createAccount(account: { name: "Alice" }) {
+    id
+    name
+  }
+}
+```
 
-Because the backend uses a GraphQL Gateway, a frontend client can fetch data from all three microservices (Accounts, Orders, and Products) in a single unified request. 
+### 2. Create a Product
+Run this to add an item to the Elasticsearch catalog. *(Save the `id` it returns!)*
+```graphql
+mutation {
+  createProduct(
+    product: {
+      name: "Mechanical Keyboard"
+      description: "Hot-swappable 75%"
+      price: 129.99
+    }
+  ) {
+    id
+    name
+    price
+  }
+}
+```
 
-Try pasting this in the playground to see how it resolves data across the internal gRPC services:
+### 3. Place an Order (Triggers RabbitMQ)
+Replace the IDs below with the ones you got from Steps 1 and 2, then run it. *Behind the scenes, the Order service will process this and instantly fire an event to RabbitMQ!*
+```graphql
+mutation {
+  createOrder(
+    order: {
+      accountId: "<PASTE_ACCOUNT_ID_HERE>"
+      products: [
+        { id: "<PASTE_PRODUCT_ID_HERE>", quantity: 2 }
+      ]
+    }
+  ) {
+    id
+    totalPrice
+  }
+}
+```
 
+### 4. Query Everything (gRPC Data Stitching)
+Run this massive query to fetch the Account, their Orders, and the specific Products inside the order all at once. The GraphQL gateway resolves this by making high-speed gRPC calls to all three microservices simultaneously.
 ```graphql
 query {
   accounts {
-    id
     name
     orders {
       id
-      createdAt
       totalPrice
+      createdAt
       products {
         name
         price
@@ -60,9 +96,21 @@ query {
 }
 ```
 
+## 💻 Local Development
+
+You only need **Docker** installed. No local Go environment is required.
+
+1. **Spin up the cluster:**
+   ```bash
+   docker compose up -d --build
+   ```
+2. **Access the Dashboards:**
+   - **GraphQL API:** [http://localhost:8000/playground](http://localhost:8000/playground)
+   - **RabbitMQ Dashboard:** [http://localhost:15672](http://localhost:15672) *(Login: `guest` / `guest`)*
+
 ## 🧹 Clean Up
 
-To gracefully stop the containers and wipe the databases (useful if you want a fresh database instance):
+To gracefully stop the containers and wipe the local databases:
 ```bash
 docker compose down -v
 ```
