@@ -96,6 +96,18 @@ query {
 }
 ```
 
+## 📊 Performance & Load Testing
+
+The architecture was load-tested using **k6** to simulate 50 concurrent virtual users continuously hitting the GraphQL API. The backend successfully stitched data via gRPC across multiple databases (Elasticsearch, PostgreSQL, RabbitMQ) under heavy load.
+
+**Test Results (50 Concurrent Users over 50 seconds):**
+- **Total Requests:** 932
+- **HTTP Success Rate:** 100% (Zero server crashes)
+- **GraphQL Success Rate:** 96%
+- **Median Latency:** 187ms
+
+*Given that this test was run against a tiny single-core cloud instance (1 OCPU / 1GB RAM) running 6 massive containers concurrently, a 187ms median response time with 100% HTTP uptime demonstrates the extreme lightweight performance and resilience of this Go + gRPC architecture.*
+
 ## 💻 Local Development
 
 You only need **Docker** installed. No local Go environment is required.

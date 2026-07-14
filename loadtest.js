@@ -11,7 +11,7 @@ export const options = {
 
 export default function () {
     // Your GraphQL Endpoint
-    const url = 'http://localhost:8000/graphql';
+    const url = 'http://nexus-go.duckdns.org:8000/graphql';
 
     // The GraphQL query we are testing
     const payload = JSON.stringify({
@@ -37,7 +37,7 @@ export default function () {
     // Check if the request was successful
     check(res, {
         'status is 200': (r) => r.status === 200,
-        'no graphql errors': (r) => !r.body.includes('errors'),
+        'no graphql errors': (r) => r.body && !r.body.includes('errors'),
     });
 
     sleep(1);
